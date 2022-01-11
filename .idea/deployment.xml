@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ares (3622e6f2-2b11-43ba-9659-4407290c21a4)" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="ares (e6c33875-6e47-48ff-a11f-1bec5247acbf)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/sentry" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
