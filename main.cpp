@@ -18,8 +18,9 @@ std::chrono::time_point<std::chrono::system_clock> start_0, end_0;
 
 #define image_width 960//960
 #define image_height 768//768
-#define red_color 1
-#define blue_color 2
+
+uint8_t find_color = 2;//default find red
+
 char *pRGB24Buf_0 = new char[image_width * image_height * 3];
 int cnt = 0;
 std::queue<pair<std::chrono::time_point<std::chrono::system_clock>, cv::Mat>> img_buf;
@@ -168,12 +169,12 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
 #endif
         cv::Mat img_bin;
         if (port.receive[2] == 'b') {   /// 我方是蓝色，寻找红色
-            armour.img_pretreatment(img, img_bin, blue_color);
+            find_color = 2;
         }
         if (port.receive[2] == 'r') {
-            armour.img_pretreatment(img, img_bin, blue_color);
+            find_color = 1;
         }
-
+        armour.img_pretreatment(img, img_bin, find_color); //default find red
         cv::Point2f tg_pt_L, tg_pt_R;
         ///get result
         cv::RotatedRect tg_rect = armour.Armor_Detector(img_bin, tg_pt_L, tg_pt_R); //get armour area
@@ -275,7 +276,7 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
     }
 }
 
-#define USB_CAM
+//#define USB_CAM
 int main() {
 
 #ifndef USB_CAM
@@ -285,8 +286,8 @@ int main() {
         return 0;
     }
     camera_config cam0_info;
-    //cam0_info.sn_str = "KE0200100062";  //sentry down
-    cam0_info.sn_str = "KE0200120159";  //sentry up
+    cam0_info.sn_str = "KE0200100062";  //sentry down
+    //cam0_info.sn_str = "KE0200120159";  //sentry up
     cam0_info.SN = &cam0_info.sn_str[0];
 
     MercureDriver *cam0 = new MercureDriver(cam0_info);
@@ -309,9 +310,9 @@ int main() {
 
 
     ///串口初始化
-    //while (!port.PortInit(0, 115200));
+    while (!port.PortInit(0, 115200));
     ///线程
-    //std::thread serial_receive_thread(port_receive);
+    std::thread serial_receive_thread(port_receive);
     std::thread process_armour_detect{armour_detect_process};
 
     while (1) {
