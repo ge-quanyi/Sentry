@@ -15,7 +15,7 @@ set(GXI_API_DIR "/usr/lib/")
 
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-find_package(OpenCV 3.4.4 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 message(WARNING "OpenCV_VERSION: ${OpenCV_VERSION}")
 

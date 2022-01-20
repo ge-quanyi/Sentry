@@ -259,13 +259,6 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
         *(signed char *) &port.buff_w_[7] = int8_t(cmd);
         port.SendBuff('c', port.buff_w_, 8);//std::cout <<"send success!!!"<< std::endl;
 
-        //resize(img,img,Size(0,0),0.8,0.8);
-        imshow("src", img);
-        cv::waitKey(1);
-
-        std::chrono::time_point<std::chrono::system_clock> t2 = std::chrono::system_clock::now();
-        std::chrono::duration<double> dura = t2 - t1;
-        std::cout << "the frame frequency is: " << 1 / dura.count() << std::endl;
         std::cout << "   === ang_P: " << ang_P
                   << "   === ang_Y: " << ang_Y
                   << "   === Dis: " << Dis
@@ -273,6 +266,14 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
                   << "   === mode: " << autoaim
                   << "   === if shoot:" << to_string(cmd)
                   << std::endl;
+        //resize(img,img,Size(0,0),0.8,0.8);
+        imshow("src", img);
+        cv::waitKey(1);
+
+        std::chrono::time_point<std::chrono::system_clock> t2 = std::chrono::system_clock::now();
+        std::chrono::duration<double> dura = t2 - t1;
+        std::cout << "the frame frequency is: " << 1 / dura.count() << std::endl;
+
     }
 }
 
@@ -306,8 +307,6 @@ int main() {
         return 0;
     }
 #endif
-
-
 
     ///串口初始化
     while (!port.PortInit(0, 115200));

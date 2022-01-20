@@ -437,8 +437,8 @@ bool SerialPort::ReceiveBuff(char *src_buff, char *dst_buff)
  * @date
  */
 void port_receive(void){
-    std::cout<<"创建线程成功"<<std::endl;
-    while(!port.PortInit(0, 115200));
+    std::cout<<"创建线程成功:"<<std::endl;
+    //while(!port.PortInit(0, 115200));
     while(1){
         port.ReceiveBuff(port.buff_l_, port.buff_r_);
     }
