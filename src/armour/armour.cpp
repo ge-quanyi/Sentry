@@ -53,15 +53,15 @@ void Armour::img_pretreatment(const cv::Mat &src, cv::Mat &dst, int team) {
     blur(temp_img, temp_img, Size(3, 3));
     double maxValue_gray;
     minMaxLoc(temp_img, 0, &maxValue_gray, 0, 0);
-    double thres_value = maxValue_gray * 0.7;
+    double thres_value = maxValue_gray * 0.85;
     if (thres_value < 128)
         thres_value = 128;
     threshold(temp_img, dst, thres_value, 255, THRESH_BINARY);
-    //cv::erode(dst,dst,element);
+    cv::erode(dst,dst,element);
     cv::dilate(dst, dst, element);
     cv::dilate(dst, dst, element);
     cv::erode(dst, dst, element);
-    dst = dst & gray;
+    //dst = dst & gray;
     //resize(dst,dst,Size(0,0),0.8,0.8);
     //cv::imshow("img_temp:",dst);
     //cv::waitKey(1);

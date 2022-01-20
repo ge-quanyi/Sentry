@@ -113,7 +113,7 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
 [[noreturn]] void armour_detect_process() {
     Armour armour;
     Classifier classifier;
-    if (!armour.readCameraParameters("../config/cam_param.yaml")) {
+    if (!armour.readCameraParameters("../config/camera_062.xml")) {
         std::cout << "read camera param fail ..." << std::endl;
         return;
     }
@@ -184,7 +184,11 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
             tg_num = 0;
             ///add armour id
             //if(id > 0)
-            tg_num = 1;
+            cv::Rect roi = tg_rect.boundingRect();
+            Mat ROI = img(roi);
+            int id = classifier.numPredict(ROI);
+            if(id > 0)
+                tg_num = 1;
 
             if (tg_num > 0) {
 
