@@ -187,6 +187,7 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
             cv::Rect roi = tg_rect.boundingRect();
             Mat ROI = img(roi);
             int id = classifier.numPredict(ROI);
+            std::cout<<"======== ID :"<<id<<std::endl;
             if(id > 0)
                 tg_num = 1;
 
