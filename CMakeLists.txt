@@ -27,6 +27,7 @@ include_directories(
                     ${PROJECT_SOURCE_DIR}/include/serial
                     ${PROJECT_SOURCE_DIR}/include/
                     ${PROJECT_SOURCE_DIR}/include/classifier
+                    ${PROJECT_SOURCE_DIR}/include/predictor
 )
 
 add_subdirectory(src)

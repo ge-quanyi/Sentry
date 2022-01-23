@@ -184,10 +184,14 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
             tg_num = 0;
             ///add armour id
             //if(id > 0)
+            int id = 0;
             cv::Rect roi = tg_rect.boundingRect();
-            Mat ROI = img(roi);
-            int id = classifier.numPredict(ROI);
-            std::cout<<"======== ID :"<<id<<std::endl;
+            if(roi.x >= 0 && roi.y >= 0 && roi.x + roi.width <= img.cols && roi.y + roi.height <= img.rows){
+                Mat ROI = img(roi);
+                id = classifier.numPredict(ROI);
+                std::cout<<"======== ID :"<<id<<std::endl;
+            }
+            
             if(id > 0)
                 tg_num = 1;
 
