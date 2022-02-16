@@ -19,7 +19,7 @@ std::chrono::time_point<std::chrono::system_clock> start_0, end_0;
 #define image_width 960//960
 #define image_height 768//768
 
-uint8_t find_color = 2;//default find red(2)
+uint8_t find_color = 1;//default find red(2)
 
 char *pRGB24Buf_0 = new char[image_width * image_height * 3];
 int cnt = 0;
@@ -133,14 +133,9 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
 
     int bad_img_count = 0;
     ///auto aim loop
-    if (port.receive[2] == 'b') {   /// 我方是蓝色，寻找红色
-        find_color = 2;
-        std::cout<<"our team is blue, shoot red!!"<<std::endl;
-    }
-    if (port.receive[2] == 'r') {
-        find_color = 1;
-        std::cout<<"our team is red, shoot blue!!"<<std::endl;
-    }
+
+
+
     while (1) {
         cv::Mat img;
         std::chrono::time_point<std::chrono::system_clock> t1;
@@ -177,6 +172,15 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
         continue;
 #endif
         cv::Mat img_bin;
+
+        if (port.buff_r_[1] == 'b') {   /// 我方是蓝色，寻找红色
+            find_color = 2;
+            std::cout<<"our team is blue, shoot red!!"<<std::endl;
+        }
+        if (port.buff_r_[1] == 'r') {
+            find_color = 1;
+            std::cout<<"our team is red, shoot blue!!"<<std::endl;
+        }
 
         armour.img_pretreatment(img, img_bin, find_color); //default find red
         cv::Point2f tg_pt_L, tg_pt_R;
@@ -288,9 +292,7 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
         *(signed char *) &port.buff_w_[6] = int8_t(autoaim);   //是否开启自瞄模式
         *(signed char *) &port.buff_w_[7] = int8_t(cmd);
         port.SendBuff('c', port.buff_w_, 9);//std::cout <<"send success!!!"<< std::endl;
-
-
-
+        
         //imshow("src", img);
         //cv::waitKey(1);
 

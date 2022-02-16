@@ -361,63 +361,15 @@ bool SerialPort::ReceiveBuff(char *src_buff, char *dst_buff)
     //NULL;
     //usleep(20000);
     Read(src_buff, COM_BUFF_LEN);
-    //cout << (char)src_buff[4] <<endl;
+
     //cout << src_buff <<endl;
 
     if (src_buff[0] == 0x55)
     {
-        receive[0]=src_buff[0];
+        dst_buff[0] = src_buff[0];
+        dst_buff[1] = src_buff[1];
         //recieve[0] = src_buff[0];
-        if (ISO14443ACheckLen((unsigned char*)(src_buff + HEAD_LEN -2)))
-        {
-            /* if (ISO14443ACheckCRCA(src_buff, (unsigned short)(src_buff[2] + HEAD_LEN)))
-             {*/
 
-            for (int i = 0; i < DATA_LEN; i++)
-            {
-                dst_buff[i] = src_buff[i];
-                //cout << (char)src_buff[i] << endl;
-            }
-            cout<<"success!!"<<endl;
-
-            if(src_buff[1] == 'c' || src_buff[1] == 'z' || src_buff[1] == 'd' || src_buff[1] == 'v')
-            {
-                //some_mutex.lock();
-                mtx_port.lock();
-                /*
-                recieve[1] = src_buff[1];
-                recieve[2] = src_buff[4];
-                 */
-                receive[1] = 'c';
-                receive[2]=src_buff[4];
-                port.receive[2] = src_buff[4];
-                mtx_port.unlock();
-                //some_mutex.unlock();
-            }
-            //usleep(200000);
-            //cout << recieve[1] << endl;
-
-            //cout << (int)dst_buff[4] <<endl;
-
-            //cv::waitKey(50);
-
-            return true;
-            /* }
-             else
-             {
-                 //cout << "error3" << endl;
-                 for (int i = 0; i < DATA_LEN; i++)
-                     //dst_buff[i] = 0;
-                 return false;
-             }*/
-        }
-        else
-        {
-            cout << "error2" << endl;
-            for (int i = 0; i < DATA_LEN; i++)
-                dst_buff[i] = 0;
-            return false;
-        }
     }
     else
     {

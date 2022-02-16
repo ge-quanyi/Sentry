@@ -116,7 +116,7 @@ cv::RotatedRect Armour::Armor_Detector(const Mat &src, cv::Point2f &tg_pt_L, cv:
     findContours(src_contours, contours, white_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
     for (unsigned int i = 0; i < contours.size(); i++) {
         //std::cout<<"contours size is"<<contours[i].size()<<std::endl;
-        if (contours[i].size() < 20)
+        if (contours[i].size() < 35)
             continue;
         lightBar_fitEllipse = fitEllipse(contours[i]);
         lightBar_minAreaRect = minAreaRect(contours[i]);
@@ -175,11 +175,11 @@ cv::RotatedRect Armour::Armor_Detector(const Mat &src, cv::Point2f &tg_pt_L, cv:
             double MH_diff = (min(v_lightBar[i].size.height, v_lightBar[j].size.height)) * 2 / 3;//高度差限幅
             double height_max = (max(v_lightBar[i].size.height, v_lightBar[j].size.height));//最大高度
             double X_diff = abs(v_lightBar[i].center.x - v_lightBar[j].center.x);//横坐标差值
-            double lightBar_dis = sqrt((v_lightBar[i].center.x - v_lightBar[j].center.x)*(v_lightBar[i].center.x - v_lightBar[j].center.x)
-                                       - (v_lightBar[i].center.y - v_lightBar[j].center.y)*(v_lightBar[i].center.y - v_lightBar[j].center.y));
+            //double lightBar_dis = sqrt((v_lightBar[i].center.x - v_lightBar[j].center.x)*(v_lightBar[i].center.x - v_lightBar[j].center.x)
+            //                           - (v_lightBar[i].center.y - v_lightBar[j].center.y)*(v_lightBar[i].center.y - v_lightBar[j].center.y));
 
             if (Y_diff < height_max && X_diff < MH_diff * 10 &&
-                (angle_diff < 5 || 180 - angle_diff < 3) &&
+                (angle_diff < 10 || 180 - angle_diff < 10) &&
                 /*lightBar_dis / v_lightBar[i].size.height >0.5 &&*/
                 height_diff / height_sum < 0.5 &&
                 width_diff / width_sum < 0.4  &&
@@ -196,7 +196,7 @@ cv::RotatedRect Armour::Armor_Detector(const Mat &src, cv::Point2f &tg_pt_L, cv:
                     temp_pt_L = cv::Point2f(v_lightBar[j].center);
                     temp_pt_R = cv::Point2f(v_lightBar[i].center);
                 }
-                if (180 - angle_diff < 3)
+                if (180 - angle_diff < 10)
                     temp_armour_rect.angle += 90;
                 int nL = (v_lightBar[i].size.height + v_lightBar[j].size.height) / 2; //装甲的高度
                 int nW = sqrt((v_lightBar[i].center.x - v_lightBar[j].center.x) *
@@ -281,6 +281,19 @@ void Armour::cal_angle(Point2f &tg_pt_L, Point2f &tg_pt_R, double &angle_P, doub
     double X = (tg_center.x - cx) * Z / fx;
     double Y = (tg_center.y - cy) * Z / fy - 0.15;
 
+    if(Z >= 5){
+        X = (tg_center.x - cx) * Z / fx;
+        Y = (tg_center.y - cy) * Z / fy - 0.35;
+    }
+    else if (Z >=3){
+        X = (tg_center.x - cx) * Z / fx;
+        Y = (tg_center.y - cy) * Z / fy - 0.25;
+    }else{
+        X = (tg_center.x - cx) * Z / fx;
+        Y = (tg_center.y - cy) * Z / fy - 0.20;
+    }
+
+
     //double X = (tg_center.x - img_center_x) * Z / fx;
     //double Y = (tg_center.y - img_center_y) * Z / fy ;
 
@@ -301,7 +314,7 @@ void Armour::draw_target(RotatedRect rect, Mat &src) {
     }
 }
 bool Armour::ifShoot(double angle_p, double angle_y) {
-    if(abs(angle_p) < 1.0 && abs(angle_y) < 1.0)
+    if(abs(angle_p) < 1.0 && abs(angle_y) < 1.5)
         return true;
     else
         return false;
