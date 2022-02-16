@@ -35,36 +35,71 @@ bool Armour::readCameraParameters(string filename) {
 }
 
 void Armour::img_pretreatment(const cv::Mat &src, cv::Mat &dst, int team) {
-    vector<Mat> channels_RGB;
-    channels_RGB.clear();
-    Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-    split(src, channels_RGB);
-    cv::Mat temp_img;
-    cv::Mat gray;
-    if (team == 1) {
-        temp_img = channels_RGB.at(0);
-    } else if (team == 2) {
-        temp_img = channels_RGB.at(2);
+
+    int gray_threshold_red  = 60;
+    int separation_threshold_red = 180;
+    int separation_threshold_green = 10;
+
+    int gray_threshold_blue  = 60;
+    int separation_threshold_blue = 60;
+
+    int gray_threshold_purple = 200;
+
+    std::vector<cv::Mat> src_split_;
+    cv::Mat src_gray_, src_white_,src_separation_,src_separation_green;
+    cv::split(src,src_split_);
+    cv::cvtColor(src, src_gray_,CV_BGR2GRAY);
+    cv::threshold(src_gray_, src_white_, 240, 255, cv::THRESH_BINARY);
+    cv::bitwise_not(src_white_, src_white_);
+
+    Mat element3 = getStructuringElement(MORPH_RECT,Size(3,5));
+    Mat element5 = getStructuringElement(MORPH_RECT,Size(5,7));
+    Mat element7 = getStructuringElement(MORPH_RECT,Size(7,9));
+
+    if(team == 2){ //red
+        cv::threshold(src_gray_, src_gray_, gray_threshold_red, 255, cv::THRESH_BINARY);
+        cv::subtract(src_split_[2],src_split_[0],src_separation_);
+        cv::threshold(src_separation_, src_separation_, separation_threshold_red,255, cv::THRESH_BINARY);
+
+        cv::dilate(src_separation_,src_separation_,element3);
+        cv::dilate(src_separation_,src_separation_,element7);
+
+        cv::dilate(src_white_,src_white_,element3);
+        cv::dilate(src_white_,src_white_,element3);
+        dst = src_separation_ & src_gray_ &src_white_;
+
+        cv::erode(dst,dst,element3);
+        cv::dilate(dst, dst, element3);
+        cv::dilate(dst,dst,element5);
+        cv::erode(dst,dst,element5);
+
     }
-    cvtColor(src,gray,CV_BGR2GRAY);
-    threshold(gray,gray,60,255,THRESH_BINARY);
-    Scalar meanValue = mean(temp_img);
-    temp_img = temp_img - meanValue[0];
-    blur(temp_img, temp_img, Size(3, 3));
-    double maxValue_gray;
-    minMaxLoc(temp_img, 0, &maxValue_gray, 0, 0);
-    double thres_value = maxValue_gray * 0.85;
-    if (thres_value < 128)
-        thres_value = 128;
-    threshold(temp_img, dst, thres_value, 255, THRESH_BINARY);
-    cv::erode(dst,dst,element);
-    cv::dilate(dst, dst, element);
-    cv::dilate(dst, dst, element);
-    cv::erode(dst, dst, element);
-    //dst = dst & gray;
-    //resize(dst,dst,Size(0,0),0.8,0.8);
-    //cv::imshow("img_temp:",dst);
-    //cv::waitKey(1);
+    else{
+        Mat src_purple_;
+        cv::threshold(src_split_[2], src_purple_, gray_threshold_purple, 255, cv::THRESH_BINARY);
+        cv::bitwise_not(src_purple_, src_purple_);
+        cv::threshold(src_gray_, src_gray_, gray_threshold_blue, 255, cv::THRESH_BINARY);
+        cv::subtract(src_split_[0],src_split_[2],src_separation_);
+        cv::threshold(src_separation_, src_separation_, separation_threshold_blue,255, cv::THRESH_BINARY);
+
+        //cv::dilate(src_separation_,src_separation_,element3);
+        cv::dilate(src_separation_,src_separation_,element7);
+        cv::erode(src_separation_,src_separation_,element3);
+
+        dst = src_separation_ &src_gray_ ;
+        erode(dst,dst,element3);
+        dilate(dst,dst,element3);
+        dilate(dst,dst,element7);
+        erode(dst,dst,element7);
+        //erode(dst,dst,element3);
+    }
+
+    //imshow("grey",src_gray_);
+    // imshow("separation",src_separation_);
+    //imshow("white",src_white_);
+    // resize(dst,dst,Size(0,0), 0.5,0.5);
+     //imshow("dst", dst);
+    //waitKey(1);
 }
 
 
@@ -80,6 +115,7 @@ cv::RotatedRect Armour::Armor_Detector(const Mat &src, cv::Point2f &tg_pt_L, cv:
     vector<Vec4i> white_hierarchy;
     findContours(src_contours, contours, white_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_NONE);
     for (unsigned int i = 0; i < contours.size(); i++) {
+        //std::cout<<"contours size is"<<contours[i].size()<<std::endl;
         if (contours[i].size() < 20)
             continue;
         lightBar_fitEllipse = fitEllipse(contours[i]);
@@ -142,9 +178,9 @@ cv::RotatedRect Armour::Armor_Detector(const Mat &src, cv::Point2f &tg_pt_L, cv:
             double lightBar_dis = sqrt((v_lightBar[i].center.x - v_lightBar[j].center.x)*(v_lightBar[i].center.x - v_lightBar[j].center.x)
                                        - (v_lightBar[i].center.y - v_lightBar[j].center.y)*(v_lightBar[i].center.y - v_lightBar[j].center.y));
 
-            if (Y_diff < height_max && X_diff < MH_diff * 8 &&
+            if (Y_diff < height_max && X_diff < MH_diff * 10 &&
                 (angle_diff < 5 || 180 - angle_diff < 3) &&
-                lightBar_dis / v_lightBar[i].size.height >0.5 &&
+                /*lightBar_dis / v_lightBar[i].size.height >0.5 &&*/
                 height_diff / height_sum < 0.5 &&
                 width_diff / width_sum < 0.4  &&
                 X_diff / MH_diff > 2)//还可以加入高度差限制
@@ -213,6 +249,7 @@ void Armour::cal_angle(Point2f &tg_pt_L, Point2f &tg_pt_R, double &angle_P, doub
     const double cy = camMatrix.at<double>(1, 2);
     const double fx = camMatrix.at<double>(0, 0);
     const double fy = camMatrix.at<double>(1, 1);
+    //std::cout<<"cx:"<<cx<<"cy"<<cy<<"fx"<<fx<<"fy"<<fy<<std::endl;
 
     //得到pattern-cam坐标
     std::vector<cv::Point2f> observationPts;
@@ -236,9 +273,16 @@ void Armour::cal_angle(Point2f &tg_pt_L, Point2f &tg_pt_R, double &angle_P, doub
     cv::solvePnP(cv::Mat(corners), cv::Mat(observationPts), camMatrix, distCoeffs, rvec, tvec, false);
     //Rodrigues(rvec, r);
     //t = tvec;
-    double Z = tvec.at<double>(2, 0) + 0.15;
+
+    int img_center_x = 960/2;
+    int img_center_y = 768/2;
+    double Z = tvec.at<double>(2, 0) + 0.12;
+
     double X = (tg_center.x - cx) * Z / fx;
-    double Y = (tg_center.y - cy) * Z / fy;
+    double Y = (tg_center.y - cy) * Z / fy - 0.15;
+
+    //double X = (tg_center.x - img_center_x) * Z / fx;
+    //double Y = (tg_center.y - img_center_y) * Z / fy ;
 
     angle_Y = (float) (atan(X / Z) / 3.1415926 * 180);
     angle_P = (float) (atan(Y / Z) / 3.1415926 * 180);
@@ -253,7 +297,7 @@ void Armour::draw_target(RotatedRect rect, Mat &src) {
     //cv::rectangle(src,Point(rect.x,rect.y),Point(rect.x + rect.width,rect.y + rect.height),Scalar(255,0,0),2,LINE_8);
     //cv::rectangle(src,point[1],point[3],Scalar(0,255,0),2,LINE_8);
     for (int i = 0; i < 4; i++) {
-        line(src, point[i], point[(i + 1) % 4], Scalar(0, 255, 0), 1);
+        line(src, point[i], point[(i + 1) % 4], Scalar(0, 255, 0), 2);
     }
 }
 bool Armour::ifShoot(double angle_p, double angle_y) {

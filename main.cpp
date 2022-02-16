@@ -19,7 +19,7 @@ std::chrono::time_point<std::chrono::system_clock> start_0, end_0;
 #define image_width 960//960
 #define image_height 768//768
 
-uint8_t find_color = 2;//default find red
+uint8_t find_color = 2;//default find red(2)
 
 char *pRGB24Buf_0 = new char[image_width * image_height * 3];
 int cnt = 0;
@@ -131,7 +131,16 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
     int autoaim = 0;
     int autoaim_fps = 0;
 
+    int bad_img_count = 0;
     ///auto aim loop
+    if (port.receive[2] == 'b') {   /// 我方是蓝色，寻找红色
+        find_color = 2;
+        std::cout<<"our team is blue, shoot red!!"<<std::endl;
+    }
+    if (port.receive[2] == 'r') {
+        find_color = 1;
+        std::cout<<"our team is red, shoot blue!!"<<std::endl;
+    }
     while (1) {
         cv::Mat img;
         std::chrono::time_point<std::chrono::system_clock> t1;
@@ -168,12 +177,7 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
         continue;
 #endif
         cv::Mat img_bin;
-        if (port.receive[2] == 'b') {   /// 我方是蓝色，寻找红色
-            find_color = 2;
-        }
-        if (port.receive[2] == 'r') {
-            find_color = 1;
-        }
+
         armour.img_pretreatment(img, img_bin, find_color); //default find red
         cv::Point2f tg_pt_L, tg_pt_R;
         ///get result
@@ -183,18 +187,23 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
             armour.corners.clear();
             tg_num = 0;
             ///add armour id
-            //if(id > 0)
-            int id = 0;
-            cv::Rect roi = tg_rect.boundingRect();
-            if(roi.x >= 0 && roi.y >= 0 && roi.x + roi.width <= img.cols && roi.y + roi.height <= img.rows){
-                Mat ROI = img(roi);
-                id = classifier.numPredict(ROI);
-                std::cout<<"======== ID :"<<id<<std::endl;
-            }
+            int id = 1;
+//            cv::Rect roi = tg_rect.boundingRect();
+//            if(roi.x >=0 && roi.y>=0 && roi.x + roi.width <=img.cols && roi.y + roi.height <= img.rows){
+//                Mat roi_img = img(roi);
+//                cv::resize(roi_img,roi_img,Size(130,55));
+//                cv::Mat ROI1 = roi_img(cv::Rect(0,0,20,55));
+//                cv::Mat ROI2 = roi_img(cv::Rect(110,0,20,55));
+//                ROI1 = cv::Scalar(0,0,0);
+//                ROI2 = cv::Scalar(0,0,0);
+//                cv::imshow("num", roi_img);
+//                id = classifier.numPredict(roi_img);
+//                std::cout<<"======== ID :"<<id<<std::endl;
+//            }
             
             if(id > 0)
                 tg_num = 1;
-
+            //std::cout<<tg_num<<std::endl;
             if (tg_num > 0) {
 
                 autoaim = 1;
@@ -204,7 +213,7 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
                 float armour_width = tg_rect.boundingRect().width;
                 float armour_height = tg_rect.boundingRect().height;
                 Point3f tmp;
-                if (armour_width / armour_height > 3.5) {
+                if (armour_width / armour_height > 1) {
                     std::cout << "big armour" << std::endl;
                     for (int i = 0; i < 5; i++) {
                         tmp.x = armour_big_pt[i][0];
@@ -229,10 +238,15 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
             } else {
                 tg_num = 0;
                 ang_P = ang_Y = Dis = 0;
+                autoaim = 0;
             }
         } else {
             tg_num = 0;
+            autoaim = 0;
             ang_P = ang_Y = Dis = 0;
+            //cv::imwrite(PROJECT_DIR"/bad/"+ to_string(bad_img_count)+".jpg",img);
+            //bad_img_count++;
+            //cout<<"save bad image "<<bad_img_count<<std::endl;
         }
 
         if (tg_num == 0 && find_flag_last == 1) {
@@ -258,6 +272,13 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
         else
             cmd = 0x00;   //不打  32
 
+        std::cout << "   === ang_P: " << ang_P
+                  << "   === ang_Y: " << ang_Y
+                  << "   === Dis: " << Dis
+                  // << "   === ID: " << id
+                  << "   === mode: " << autoaim
+                  << "   === if shoot:" << to_string(cmd)
+                  << std::endl;
         *(signed char *) &port.buff_w_[0] = int16_t((100 * (ang_P))) >> 8;
         *(signed char *) &port.buff_w_[1] = int16_t(100 * (ang_P));
         *(signed char *) &port.buff_w_[2] = int16_t((100 * (ang_Y))) >> 8;
@@ -266,18 +287,12 @@ void Frame_0_ProcessRGB(GX_FRAME_CALLBACK_PARAM *pFrame) {
         *(signed char *) &port.buff_w_[5] = int16_t(100 * Dis);
         *(signed char *) &port.buff_w_[6] = int8_t(autoaim);   //是否开启自瞄模式
         *(signed char *) &port.buff_w_[7] = int8_t(cmd);
-        port.SendBuff('c', port.buff_w_, 8);//std::cout <<"send success!!!"<< std::endl;
+        port.SendBuff('c', port.buff_w_, 9);//std::cout <<"send success!!!"<< std::endl;
 
-        std::cout << "   === ang_P: " << ang_P
-                  << "   === ang_Y: " << ang_Y
-                  << "   === Dis: " << Dis
-                  // << "   === ID: " << id
-                  << "   === mode: " << autoaim
-                  << "   === if shoot:" << to_string(cmd)
-                  << std::endl;
-        //resize(img,img,Size(0,0),0.8,0.8);
-        imshow("src", img);
-        cv::waitKey(1);
+
+
+        //imshow("src", img);
+        //cv::waitKey(1);
 
         std::chrono::time_point<std::chrono::system_clock> t2 = std::chrono::system_clock::now();
         std::chrono::duration<double> dura = t2 - t1;

@@ -4,10 +4,10 @@ project(ArmourShoot)
 #cmake_policy(SET CMP0023 OLD)
 #cmake_policy(SET CMP0022 OLD)
 
-set(CMAKE_BUILD_TYPE "Release")
+#set(CMAKE_BUILD_TYPE "Release")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 #-DEIGEN_USE_MKL_ALL")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
+#set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPATH=\"\\\"${PROJECT_SOURCE_DIR}\\\"\"")
 

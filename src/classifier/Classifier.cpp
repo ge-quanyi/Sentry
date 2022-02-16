@@ -24,7 +24,7 @@ std::ostringstream oss;
  *
  */
 
-svm_model *my_model = svm_load_model(PROJECT_DIR"config/model.txt");
+svm_model *my_model = svm_load_model(PROJECT_DIR"/config/model.txt");
 
 Classifier::Classifier() {
 
@@ -246,14 +246,11 @@ void Classifier::trainModel() {
 }
 
 int Classifier::numPredict(cv::Mat &src) {
-    cv::Mat ROI1 = src(cv::Rect(0,0,20,55));
-    cv::Mat ROI2 = src(cv::Rect(110,0,20,55));
-    ROI1 = cv::Scalar(0,0,0);
-    ROI2 = cv::Scalar(0,0,0);
+
     cv::cvtColor(src,src,CV_BGR2GRAY);
     threshold(src, src, 0 ,255,cv::THRESH_OTSU);
 
-    cv::resize(src, src, cv::Size(28,28),CV_8UC1);
+    cv::resize(src, src, cv::Size(28,28));
     //处理HOG特征
 
     hog->compute(src, descriptors, cv::Size(7, 7)); //Hog特征计算，检测窗口移动步长(1,1)
@@ -273,10 +270,8 @@ int Classifier::numPredict(cv::Mat &src) {
    // }
 
     int i = (int)Probability - 1;
-    if(a[i]>0.85){
+    if(a[i]>0.5){
         predictValue = Probability;
-    }else if(a[i]>=0.6){
-        predictValue = 0;
     }else{
         predictValue = -1;
     }
